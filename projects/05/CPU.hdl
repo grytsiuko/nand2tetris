@@ -39,5 +39,38 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+    // A register
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=aIn);
+    Not(in=instruction[15], out=opcodeNot);
+    Or(a=opcodeNot, b=instruction[5], out=aLoad);
+    ARegister(in=aIn, load=aLoad, out=aOut, out[0..14]=addressM);
+
+    // D register
+    And(a=instruction[15], b=instruction[4], out=dLoad);
+    DRegister(in=aluOut, load=dLoad, out=dOut);
+
+    // Jump conditions
+    And(a=instruction[0], b=aluOutPos, out=jmp0);
+    And(a=instruction[1], b=aluOutZero, out=jmp1);
+    And(a=instruction[2], b=aluOutNeg, out=jmp2);
+    Or(a=jmp0, b=jmp1, out=jmp01);
+    Or(a=jmp01, b=jmp2, out=jmp012);
+
+    // Program Counter
+    And(a=jmp012, b=instruction[15], out=pcLoad);
+    Not(in=pcLoad, out=pcInc);
+    PC(in=aOut, load=pcLoad, inc=pcInc, reset=reset, out[0..14]=pc);
+
+    // A or M
+    Mux16(a=aOut, b=inM, sel=instruction[12], out=amOut);
+
+    // ALU
+    ALU(x=dOut, y=amOut, zx=instruction[11], nx=instruction[10], 
+        zy=instruction[9], ny=instruction[8], f=instruction[7], 
+        no=instruction[6], out=aluOut, out=outM, zr=aluOutZero, ng=aluOutNeg);
+    Not(in=aluOutNeg, out=aluOutNot);
+    Xor(a=aluOutNot, b=aluOutZero, out=aluOutPos);
+    And(a=instruction[3], b=instruction[15], out=writeM);
+
 }
