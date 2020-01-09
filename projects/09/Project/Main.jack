@@ -1,0 +1,12 @@
+
+class Main{
+	function void main(){
+		var int a, b, c;
+		let a = Keyboard.readInt("a = ");
+		let b = Keyboard.readInt("b = ");
+		let c = a + b;
+		do Output.printString("a + b = ");
+		do Output.printInt(c);
+		return;
+	}
+}
